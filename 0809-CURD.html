@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>0809-firebase-curd</title>
+        <!--  
+            新增:Creat
+            查詢:Read
+            更新:Updata
+            刪除:Delete
+        -->
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script><!-- comment -->
+        <script>
+            function resize() {
+            parent.document.getElementById("mainframe").height = document.body.scrollHeight; //將子頁面高度傳到父頁面框架
+        }
+        </script>
+        
+        
+        <style>
+body {
+    width: 100%;
+    height: 768px;
+    
+}
+#demo2 {
+    height: 400px;
+    overflow: auto;
+}
+           
+            input {
+                width: 90px;
+                margin: 0px 0px 3px 0px;
+                padding: 3px;
+            }
+            select {
+                width: 90px;
+                margin: 0px 0px 3px 0px;
+                padding: 3px;
+            }
+            button {
+                
+                margin: 5px 30px 0px 0px ;
+            }
+        </style>
+    </head>
+    <body onload="resize();">
+        
+        
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <input type="text" id="pid" placeholder="產品編號"><br>
+                    <input type="text" id="pname" placeholder="產品名稱"><br>
+                    <input type="text" id="price" placeholder="產品價格"><br>
+                    <select id="categoryid">
+                        <option value="" disabled selected>產品類別</option>
+                        <option value="1" >玩具</option>
+                        <option value="2" >娃娃</option>
+                        <option value="3" >汽車</option>
+                        <option value="4" >小房子</option>  
+                        <option value="5" >小玩偶</option>  
+                    </select><br>
+                    <select id="supplerid">
+                        <option value="" disabled selected>供應商</option>
+                        <option value="1" >我家</option>
+                        <option value="2" >你家</option>
+                        <option value="3" >他家</option>
+                        <option value="4" >阿公家</option>  
+                        <option value="5" >書輸家</option>  
+                    </select><br>
+                    <button id="btnSet">SetData</button>
+                    <button id="btnGet">GetData</button>
+                </div>   
+                    
+                <div class="col">
+                     <input type="text" id="pid2" placeholder="產品編號"><br>
+                     <input type="text" id="pname2" placeholder="產品名稱" disabled="" style="background-color: #BEBEBE"><br>
+                     <input type="text" id="price2" placeholder="產品價格" disabled=""><br>
+                     <select id="categoryid2" disabled="">
+                    <option value="" disabled selected >產品類別</option>
+                    <option value="1" >玩具</option>
+                    <option value="2" >娃娃</option>
+                    <option value="3" >汽車</option>
+                    <option value="4" >小房子</option>  
+                    <option value="5" >小玩偶</option>  
+                </select><br>
+                <select id="supplerid2" disabled="">
+                    <option value="" disabled selected>供應商</option>
+                    <option value="1" >我家</option>
+                    <option value="2" >你家</option>
+                    <option value="3" >他家</option>
+                    <option value="4" >阿公家</option>  
+                    <option value="5" >書輸家</option>  
+                </select><br>
+                <button id="btnSearch">Search Data</button>
+                <button id="btnDel" disabled="">Delete Data</button>
+                <button id="btnUpdate" disabled="">Update Data</button>
+                </div>
+               
+            </div>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <div id="demo"></div>
+                    <div id="demo2"></div>
+                </div>
+                <div class="col">
+                    <div id="demo3"></div>
+                </div>    
+            </div>
+        </div>
+        
+        <script type="module">
+            // Import the functions you need from the SDKs you need
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+            import { getFirestore, doc, setDoc, collection, query, onSnapshot, getDocs, getDoc, deleteDoc,updateDoc } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js";
+            // TODO: Add SDKs for Firebase products that you want to use
+            // https://firebase.google.com/docs/web/setup#available-libraries
+
+            // Your web app's Firebase configuration
+            // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+            const firebaseConfig = {
+                apiKey: "AIzaSyD8VV2POL-xKlIQ13qmjPnfbFf5_c-uDV0",
+                authDomain: "onestop-6d9a9.firebaseapp.com",
+                projectId: "onestop-6d9a9",
+                storageBucket: "onestop-6d9a9.appspot.com",
+                messagingSenderId: "33933680051",
+                appId: "1:33933680051:web:05a59180609aa76a6c7fc6",
+                measurementId: "G-XQXDRT84E3"
+            };
+
+            // 初始化firebase
+            const app = initializeApp(firebaseConfig);
+            // 初始化firestore (雲端)
+            const db = getFirestore(app);
+            
+            const pid = document.querySelector('#pid');
+            const pname = document.querySelector('#pname');
+            const price = document.querySelector('#price');
+            const categoryid= document.querySelector('#categoryid');
+            const supplerid= document.querySelector('#supplerid');
+            
+            const btnSet = document.querySelector('#btnSet');
+            const btnGet = document.querySelector('#btnGet');
+            
+            const pid2 = document.querySelector('#pid2');
+            const pname2 = document.querySelector('#pname2');
+            const price2 = document.querySelector('#price2');
+            const categoryid2= document.querySelector('#categoryid2');
+            const supplerid2= document.querySelector('#supplerid2');
+            
+            const btnSearch = document.querySelector('#btnSearch');
+            const btnDel = document.querySelector('#btnDel');
+            const btnUpdate = document.querySelector('#btnUpdate');
+            
+            const demo = document.querySelector('#demo');
+            const demo2 = document.querySelector('#demo2');
+            const demo3 = document.querySelector('#demo3');
+          
+            //新增文件
+            async function setData() { 
+            await setDoc(doc(db, "webtest01", pid.value ), {
+              
+              name: pname.value,
+              price: price.value,
+              categoryid: categoryid.value,
+              supplerid: supplerid.value
+                }).then (function() {
+                    demo.innerHTML = "文件編號:" + pid.value +"設定成功" ; 
+                });
+            };
+            
+           btnSet.onclick = function() {
+              setData(); 
+           } ;
+           //直接在畫面顯示函式
+           getDataListen ();
+          
+           
+           //點擊後呼叫函式getData()
+           btnGet.onclick = function() {
+               getData();
+           };
+           
+           //搜尋
+           btnSearch.onclick = function() {
+             searchData(); 
+             supplerName();
+             categoryName();
+           };
+           btnDel.onclick = function() {
+               delData();
+           };
+           
+           btnUpdate.onclick =  function () {
+                updateData();
+           };
+           //讀取文件(隨時監聽)
+           function getDataListen() {
+              const q = query(collection(db, "webtest01",pid.value));
+              const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                    demo2.innerHTML ="" ;
+                  
+                  querySnapshot.forEach((doc) => {
+                     demo2.innerHTML += "<ul>產品編號:" + doc.id
+                                     +"<li>產品名稱:" + doc.data().name + "</li>"
+                                     +"<li>產品價格:" + doc.data().price + "</li>"
+                                     +"<li>產品類別:" + categoryName(doc.data().categoryid) + "</li>"
+                                     +"<li>供應商:" + supplerName(doc.data().supplerid) + "</li></ul>";
+                             
+                             
+                                    
+                                     
+                  });
+                 
+              });
+ 
+               
+           }
+                   
+           
+           
+           //讀取文件
+           async function getData() {
+              
+            const querySnapshot = await getDocs(collection(db, "webtest01",));
+            querySnapshot.forEach((doc) => {
+              console.log(`${doc.id} => ${doc.data()}`);
+              
+              let data = doc.data() ;
+              
+              demo3.innerHTML += "<span style='color: red;'>產品編號:" +doc.id + "</span>" 
+                            + "<ul><li>產品名稱:" +data["name"] + "</li>"
+                            + "<li>產品價格:" +data['price'] + "</li>"
+                            + "<li>產品類別:" +categoryName(data['categoryid']) + "</li>"
+                            + "<li>供應商:" +supplerName(data['supplerid']) + "</li></ul><hr>";
+            });
+          };
+          
+          //搜尋文件
+          async function searchData() {
+              const docRef = doc(db,"webtest01",pid2.value);
+              const docSnap = await getDoc(docRef);
+              demo3.innerHTML ="" ;
+              if (docSnap.exists()){
+                  let data = docSnap.data() ;
+                  pname2.value= data['name'];
+                  price2.value= data['price'];
+                  categoryid2.value= data['categoryid'];
+                  supplerid2.value= data['supplerid'];
+                  demo3.innerHTML += "<span style='color: red;'>產品編號:" +docRef.id + "</span>" 
+                            + "<ul><li>產品名稱:" +data["name"] + "</li>"
+                            + "<li>產品價格:" +data['price'] + "</li>"
+                            + "<li>產品類別:" + categoryName(data['categoryid']) + "</li>"
+                            + "<li>供應商:" + supplerName(data['supplerid']) + "</li></ul><hr>";
+                    
+                     pname2.disabled=false;
+              price2.disabled=false;
+              categoryid2.disabled=false;
+              supplerid2.disabled=false;
+              btnDel.disabled=false;
+              btnUpdate.disabled=false;
+              }else {
+                  alert(pid2.value + "不存在!");
+              };
+          };
+          //指派陣列
+          function supplerName(supplerid) {
+              let name = ["我家","你家","他家","阿公家","書輸家"];
+              return name[supplerid-1];
+           
+          };
+          
+          function categoryName (categoryid) {
+              let name = ["玩具","娃娃","汽車","小房子","小玩偶"];
+              return name[categoryid-1];
+          }; 
+          //刪除文件
+          async function delData() { 
+          await deleteDoc(doc(db,"webtest01",pid2.value)).
+                  then(()=>{
+                      alert(pid2.value + "產品已刪除!!");
+              demo3.innerHTML ="" ;
+              
+              pid2.value = "";
+              pname2.value = "";
+              price2.value = "";
+              categoryid2.value = "";
+              supplerid.value = "";
+              
+              pname2.disabled=true;
+              price2.disabled=true;
+              categoryid2.disabled=true;
+              supplerid2.disabled=true;
+              btnDel.disabled=true;
+              btnUpdate.disaled=true;
+                  });
+              };
+              //更新文件
+           async function updateData() {
+               const docRef = doc(db,'webtest01',pid2.value);
+               await updateDoc(docRef,{
+                   name:pname2.value,
+                   price:price2.value *1,
+                   categoryid:categoryid2.value *1,
+                   supplerid:supplerid2.value *1
+               }).then (function(){
+                   alert(pid2.value + "產品修改成功");
+                   //清空顯示
+                    demo3.innerHTML ="" ;
+              //清空表單內容
+              pid2.value = "";
+              pname2.value = "";
+              price2.value = "";
+              categoryid2.value = "";
+              supplerid.value = "";
+              //禁用表單內容
+              pname2.disabled=true;
+              price2.disabled=true;
+              categoryid2.disabled=true;
+              supplerid2.disabled=true;
+              btnDel.disabled=true;
+              btnUpdate.disaled=true;
+               });
+           };   
+        </script>
+    </body>
+</html>
